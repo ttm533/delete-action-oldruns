@@ -3,12 +3,12 @@ import requests
 from datetime import datetime, timedelta
 
 # 获取 GitHub Token
-ACCESS_TOKEN = os.getenv("MY_ACCESS_TOKEN")  # 使用你指定的变量名称
+ACCESS_TOKEN = os.getenv("MY_ACCESS_TOKEN")
 if not ACCESS_TOKEN:
     raise ValueError("环境变量 MY_ACCESS_TOKEN 未设置！")
 
 # 获取 GitHub 用户名（用于个人仓库）
-GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 使用你指定的变量名称
+GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 设置为 GitHub 用户名
 if not GITHUB_USER:
     raise ValueError("环境变量 MY_GITHUB_USER 未设置！")
 
@@ -37,25 +37,23 @@ for repo in repos_data:
     # 获取工作流运行历史记录的 API URL
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/runs"
     
-    # 获取所有工作流运行记录（处理分页）
-    while url:
-        response = requests.get(url, headers=headers)
+    # 分页处理工作流运行记录
+    page = 1
+    while True:
+        response = requests.get(f"{url}?page={page}&per_page=25", headers=headers)
         data = response.json()
 
         if response.status_code != 200:
             print(f"无法获取 {repo_name} 仓库的工作流记录")
             break
 
-        # 打印出当前仓库的工作流记录数量和仓库名，帮助调试
-        print(f"仓库 {repo_name} 的工作流记录数量: {len(data.get('workflow_runs', []))}")
+        if not data.get("workflow_runs"):  # 没有工作流记录了
+            break
 
         # 遍历工作流运行记录并删除前一天之前的历史记录
-        for run in data.get("workflow_runs", []):
+        for run in data["workflow_runs"]:
             run_date = datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ")
             
-            # 打印出每个工作流记录的创建时间，帮助调试
-            print(f"工作流记录 ID: {run['id']}, 创建时间: {run_date}")
-
             # 如果工作流运行记录的时间早于前一天，则删除
             if run_date < day_before:
                 run_id = run["id"]
@@ -69,5 +67,5 @@ for repo in repos_data:
                 else:
                     print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}")
 
-        # 检查是否有下一页的工作流记录
-        url = data.get("next", None)  # 获取分页链接，继续请求下一页
+        # 处理下一页
+        page += 1
