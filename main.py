@@ -25,6 +25,11 @@ repos_data = response.json()
 if response.status_code != 200:
     raise Exception(f"获取仓库信息失败: {repos_data.get('message', '未知错误')}")
 
+# 打印出所有仓库信息，检查是否获取到所有仓库
+print(f"获取到的仓库数量: {len(repos_data)}")
+for repo in repos_data:
+    print(f"仓库名: {repo['name']}")
+
 # 获取当前时间并计算前一天的时间
 now = datetime.utcnow()
 day_before = now - timedelta(days=1)
@@ -44,6 +49,9 @@ for repo in repos_data:
     if response.status_code != 200:
         print(f"无法获取 {repo_name} 仓库的工作流记录")
         continue
+
+    # 打印每个仓库的工作流记录数量，确认是否返回了工作流记录
+    print(f"仓库 {repo_name} 的工作流记录数量: {len(data.get('workflow_runs', []))}")
 
     # 遍历工作流运行记录并删除前一天之前的历史记录
     for run in data.get("workflow_runs", []):
