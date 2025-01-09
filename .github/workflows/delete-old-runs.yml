@@ -24,5 +24,5 @@ jobs:
 
     - name: Run cleanup script
       env:
-        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 secrets 获取 GitHub Token
+        ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub secrets 获取 GitHub Token
       run: python main.py  # 直接运行 main.py
