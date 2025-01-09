@@ -1,6 +1,7 @@
 import os
 import requests
 from datetime import datetime, timedelta
+import time
 
 # 获取 GitHub Token
 ACCESS_TOKEN = os.getenv("MY_ACCESS_TOKEN")
@@ -37,18 +38,21 @@ for repo in repos_data:
     # 获取工作流运行历史记录的 API URL
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/runs"
     
-    # 分页处理工作流运行记录
-    page = 1
+    # 初始化删除计数
     total_deleted = 0
-    while True:
-        response = requests.get(f"{url}?page={page}&per_page=25", headers=headers)
+
+    # 初始化分页指针
+    next_page_url = url
+
+    while next_page_url:
+        print(f"正在处理仓库 {repo_name} 的工作流记录")
+        
+        # 发送请求获取工作流记录
+        response = requests.get(next_page_url, headers=headers)
         data = response.json()
 
         if response.status_code != 200:
             print(f"无法获取 {repo_name} 仓库的工作流记录")
-            break
-
-        if not data.get("workflow_runs"):  # 没有更多工作流记录了
             break
 
         # 遍历工作流运行记录并删除前一天之前的历史记录
@@ -68,9 +72,17 @@ for repo in repos_data:
                     print(f"成功删除仓库 {repo_name} 的工作流记录: {run_id}")
                 else:
                     print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}, 返回信息: {delete_response.text}")
-
-        # 如果当前页数处理完了，继续处理下一页
-        page += 1
+        
+        # 获取下一页的 URL
+        next_page_url = None
+        if "link" in response.headers:
+            links = response.headers["link"]
+            # 如果有分页的 "next" 链接，提取下一页的 URL
+            if 'rel="next"' in links:
+                next_page_url = links.split(",")[0].split(";")[0][1:-1]
+        
+        # 等待 1 秒钟，避免过于频繁的请求
+        time.sleep(1)
 
     # 输出每个仓库删除的记录数
     print(f"仓库 {repo_name} 总共删除了 {total_deleted} 条过期的工作流记录。")
