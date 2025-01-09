@@ -1,40 +1,4 @@
-import os
-import requests
-from datetime import datetime, timedelta
-
-# 获取 GitHub Token
-ACCESS_TOKEN = os.getenv("MY_ACCESS_TOKEN")
-if not ACCESS_TOKEN:
-    raise ValueError("环境变量 MY_ACCESS_TOKEN 未设置！")
-
-# 获取 GitHub 用户名（用于个人仓库）
-GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 设置为 GitHub 用户名
-if not GITHUB_USER:
-    raise ValueError("环境变量 MY_GITHUB_USER 未设置！")
-
-# 获取所有仓库的 API URL（包括 fork 仓库）
-repos_url = f"https://api.github.com/users/{GITHUB_USER}/repos?type=all&affiliation=owner,collaborator,organization_member"
-headers = {
-    "Authorization": f"Bearer {ACCESS_TOKEN}"
-}
-
-# 获取用户的所有仓库
-response = requests.get(repos_url, headers=headers)
-repos_data = response.json()
-
-if response.status_code != 200:
-    raise Exception(f"获取仓库信息失败: {repos_data.get('message', '未知错误')}")
-
-# 打印出所有仓库信息，检查是否获取到所有仓库
-print(f"获取到的仓库数量: {len(repos_data)}")
-for repo in repos_data:
-    print(f"仓库名: {repo['name']}")
-
-# 获取当前时间并计算前一天的时间
-now = datetime.utcnow()
-day_before = now - timedelta(days=1)
-
-# 遍历仓库，删除每个仓库中过期的工作流历史记录
+# 遍历工作流运行记录并删除前一天之前的历史记录
 for repo in repos_data:
     repo_name = repo["name"]
     repo_owner = repo["owner"]["login"]
@@ -47,7 +11,7 @@ for repo in repos_data:
     data = response.json()
 
     if response.status_code != 200:
-        print(f"无法获取 {repo_name} 仓库的工作流记录")
+        print(f"无法获取 {repo_name} 仓库的工作流记录，错误信息: {data.get('message', '未知错误')}")
         continue
 
     # 打印每个仓库的工作流记录数量，确认是否返回了工作流记录
@@ -68,4 +32,4 @@ for repo in repos_data:
             if delete_response.status_code == 204:
                 print(f"成功删除仓库 {repo_name} 的工作流记录: {run_id}")
             else:
-                print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}")
+                print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}, 错误信息: {delete_response.json()}")
