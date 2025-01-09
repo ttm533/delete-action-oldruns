@@ -26,8 +26,9 @@
 ### 环境变量的权限
 
 - **MY_ACCESS_TOKEN**: 必须具有以下权限：
-  - `repo` 权限：允许访问所有仓库（包括私有仓库）。
-  - `workflow` 权限：允许管理和删除工作流记录。
+  - [image](https://github.com/user-attachments/assets/7e540e75-5da4-47e9-b3bd-1dbe857a1d86)
+  - ![image](https://github.com/user-attachments/assets/45c5e04b-19c6-4879-92cb-d862f4a6fe54)
+
 - **MY_GITHUB_USER**: 需要提供你的 GitHub 用户名，用于标识你所有的仓库。
 
 ## 3. 开启 Action 的定时任务运行
