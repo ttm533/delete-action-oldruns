@@ -1,4 +1,4 @@
-name: 清理过期工作流运行记录
+name: 清理所有仓库的过期工作流记录
 
 on:
   schedule:
@@ -25,4 +25,5 @@ jobs:
     - name: Run cleanup script
       env:
         ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub secrets 获取 GitHub Token
-      run: python main.py  # 直接运行 main.py
+        GITHUB_ORG: ${{ secrets.MY_GITHUB_ORG }}  # 从 GitHub secrets 获取 GitHub 组织名
+      run: python main.py  # 运行 Python 脚本
