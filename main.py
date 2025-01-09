@@ -7,18 +7,18 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 if not ACCESS_TOKEN:
     raise ValueError("环境变量 ACCESS_TOKEN 未设置！")
 
-# 获取 GitHub 组织或用户名，假设仓库属于一个组织
-GITHUB_ORG = os.getenv("GITHUB_ORG")  # 设置为 GitHub 组织名或用户名
-if not GITHUB_ORG:
-    raise ValueError("环境变量 GITHUB_ORG 未设置！")
+# 获取 GitHub 用户名（用于个人仓库）
+GITHUB_USER = os.getenv("GITHUB_USER")  # 设置为 GitHub 用户名
+if not GITHUB_USER:
+    raise ValueError("环境变量 GITHUB_USER 未设置！")
 
-# 获取所有仓库的 API URL
-repos_url = f"https://api.github.com/orgs/{GITHUB_ORG}/repos?type=all"
+# 获取所有仓库的 API URL（适用于个人账户）
+repos_url = f"https://api.github.com/users/{GITHUB_USER}/repos?type=all"
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
-# 获取组织的所有仓库
+# 获取用户的所有仓库
 response = requests.get(repos_url, headers=headers)
 repos_data = response.json()
 
