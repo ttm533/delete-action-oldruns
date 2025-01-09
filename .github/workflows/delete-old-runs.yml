@@ -1,52 +1,25 @@
-name: 定时任务 自动获取节点信息
+name: 定时删除工作流历史记录
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # 每天运行一次
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  scraper:
+  delete-runs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3  # 检出代码
-
-    - name: Ensure main.py exists
-      run: |
-        if [ ! -f main.py ]; then
-          echo "main.py 不存在，创建 main.py 文件"
-          cat <<EOF > main.py
-import os
-
-def main():
-    print("这是一个自动生成的 main.py 文件")
-    token = os.getenv('MY_ACCESS_TOKEN')
-    if token:
-        print("环境变量 MY_ACCESS_TOKEN 存在！")
-    else:
-        print("环境变量 MY_ACCESS_TOKEN 不存在！")
-
-if __name__ == "__main__":
-    main()
-EOF
-        fi
-
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
     - name: Install dependencies
-      run: |
-        pip install requests beautifulsoup4
+      run: pip install requests
 
-    - name: Run scraper script
+    - name: Run delete script
       env:
-        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub secrets 获取环境变量
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}
       run: |
-        python main.py
+        python delete_old_runs.py
