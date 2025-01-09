@@ -24,6 +24,6 @@ jobs:
 
     - name: Run Python script to delete old workflows
       env:
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}  # 使用 GitHub Secrets 中的 ACCESS_TOKEN
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub Secrets 中获取 MY_ACCESS_TOKEN
       run: |
         python main.py  # 运行 Python 脚本
