@@ -47,7 +47,7 @@ for repo in repos_data:
             print(f"无法获取 {repo_name} 仓库的工作流记录")
             break
 
-        if not data.get("workflow_runs"):  # 没有工作流记录了
+        if not data.get("workflow_runs"):  # 没有更多工作流记录了
             break
 
         # 遍历工作流运行记录并删除前一天之前的历史记录
@@ -67,5 +67,5 @@ for repo in repos_data:
                 else:
                     print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}")
 
-        # 处理下一页
+        # 如果当前页数处理完了，继续处理下一页
         page += 1
