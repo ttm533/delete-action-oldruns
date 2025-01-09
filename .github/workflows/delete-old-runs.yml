@@ -1,25 +1,27 @@
-name: 定时删除工作流历史记录
+name: 清理过期工作流运行记录
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天运行一次
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 0 * * *'  # 每天午夜 12 点执行
 
 jobs:
-  delete-runs:
-    runs-on: ubuntu-latest
+  cleanup:
+    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3  # 检出代码仓库
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v4  # 设置 Python 环境
       with:
-        python-version: '3.9'
+        python-version: '3.9'  # 使用 Python 3.9
 
     - name: Install dependencies
-      run: pip install requests
-
-    - name: Run delete script
-      env:
-        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}
       run: |
-        python main.py
+        pip install requests  # 安装 requests 库
+
+    - name: Run cleanup script
+      env:
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 secrets 获取 GitHub Token
+      run: python main.py  # 直接运行 main.py
