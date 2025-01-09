@@ -3,14 +3,14 @@ import requests
 from datetime import datetime, timedelta
 
 # 获取 GitHub Token
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+ACCESS_TOKEN = os.getenv("MY_ACCESS_TOKEN")  # 使用你指定的变量名称
 if not ACCESS_TOKEN:
-    raise ValueError("环境变量 ACCESS_TOKEN 未设置！")
+    raise ValueError("环境变量 MY_ACCESS_TOKEN 未设置！")
 
 # 获取 GitHub 用户名（用于个人仓库）
-GITHUB_USER = os.getenv("GITHUB_USER")
+GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 使用你指定的变量名称
 if not GITHUB_USER:
-    raise ValueError("环境变量 GITHUB_USER 未设置！")
+    raise ValueError("环境变量 MY_GITHUB_USER 未设置！")
 
 # 获取所有仓库的 API URL（适用于个人账户）
 repos_url = f"https://api.github.com/users/{GITHUB_USER}/repos?type=all"
