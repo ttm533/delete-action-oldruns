@@ -22,4 +22,4 @@ jobs:
       env:
         MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}
       run: |
-        python delete_old_runs.py
+        python main.py
