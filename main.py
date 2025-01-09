@@ -8,12 +8,12 @@ if not ACCESS_TOKEN:
     raise ValueError("环境变量 MY_ACCESS_TOKEN 未设置！")
 
 # 获取 GitHub 用户名（用于个人仓库）
-GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 使用你的环境变量名
+GITHUB_USER = os.getenv("MY_GITHUB_USER")  # 设置为 GitHub 用户名
 if not GITHUB_USER:
     raise ValueError("环境变量 MY_GITHUB_USER 未设置！")
 
-# 获取所有仓库的 API URL（适用于个人账户）
-repos_url = f"https://api.github.com/users/{GITHUB_USER}/repos?type=all"
+# 获取所有仓库的 API URL（包括 fork 仓库）
+repos_url = f"https://api.github.com/users/{GITHUB_USER}/repos?type=all&affiliation=owner,collaborator,organization_member"
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
@@ -25,9 +25,9 @@ repos_data = response.json()
 if response.status_code != 200:
     raise Exception(f"获取仓库信息失败: {repos_data.get('message', '未知错误')}")
 
-# 获取当前时间并计算24小时前的时间
+# 获取当前时间并计算前一天的时间
 now = datetime.utcnow()
-hours_before_24 = now - timedelta(hours=24)
+day_before = now - timedelta(days=1)
 
 # 遍历仓库，删除每个仓库中过期的工作流历史记录
 for repo in repos_data:
@@ -45,12 +45,12 @@ for repo in repos_data:
         print(f"无法获取 {repo_name} 仓库的工作流记录")
         continue
 
-    # 遍历工作流运行记录并删除24小时之前的历史记录
+    # 遍历工作流运行记录并删除前一天之前的历史记录
     for run in data.get("workflow_runs", []):
         run_date = datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ")
         
-        # 如果工作流运行记录的时间早于24小时之前，则删除
-        if run_date < hours_before_24:
+        # 如果工作流运行记录的时间早于前一天，则删除
+        if run_date < day_before:
             run_id = run["id"]
             delete_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/runs/{run_id}"
             
