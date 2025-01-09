@@ -1,0 +1,72 @@
+name: 定时任务 自动获取节点信息
+
+on:
+  push:
+    branches:
+      - main  # 触发主分支推送时运行
+  workflow_dispatch:  # 允许手动触发
+  schedule:
+    - cron: '0 0 * * *'  # 每天午夜（00:00 UTC）运行一次
+
+jobs:
+  scraper:
+    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3  # 检出代码仓库
+
+    - name: Set up Python
+      uses: actions/setup-python@v4  # 设置 Python 环境
+      with:
+        python-version: '3.9'  # 使用 Python 3.9
+
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4  # 安装必要的依赖库
+
+    - name: Run scraper script
+      env:
+        MY_ORG_NAME: ${{ secrets.MY_ORG_NAME }}  # 从 GitHub secrets 获取 GitHub 组织名
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub secrets 获取 GitHub Token
+      run: |
+        python main.py  # 运行你的 Python 脚本
+
+    - name: Check Git Configuration
+      run: |
+        git config --list  # 输出 Git 配置信息，确保 safe.directory 被正确配置
+        git config --get safe.directory  # 查看 safe.directory 配置
+
+    - name: 删除 24 小时之前的工作流记录
+      env:
+        MY_ORG_NAME: ${{ secrets.MY_ORG_NAME }}  # GitHub 组织名
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # GitHub Token
+      run: |
+        # 获取当前时间并设置删除日期（24 小时前的时间戳）
+        current_time=$(date +%s)
+        delete_before_time=$((current_time - 86400))  # 86400秒等于24小时
+
+        # 获取所有组织下的仓库
+        repos_url="https://api.github.com/orgs/$MY_ORG_NAME/repos"
+        repos_response=$(curl -s -H "Authorization: Bearer $MY_ACCESS_TOKEN" "$repos_url")
+        
+        # 解析仓库列表
+        repos=$(echo "$repos_response" | jq -r '.[].name')
+
+        # 遍历所有仓库
+        for repo in $repos; do
+          echo "Processing repo: $repo"
+
+          # 获取当前仓库的工作流运行记录
+          runs_url="https://api.github.com/repos/$MY_ORG_NAME/$repo/actions/runs"
+          runs_response=$(curl -s -H "Authorization: Bearer $MY_ACCESS_TOKEN" "$runs_url")
+
+          # 解析工作流运行记录并删除 24 小时前的记录
+          run_ids=$(echo "$runs_response" | jq -r '.workflow_runs[] | select(.created_at | fromdateiso8601 < '"$delete_before_time"') | .id')
+
+          for run_id in $run_ids; do
+            echo "Deleting workflow run ID: $run_id from repo: $repo"
+            delete_url="https://api.github.com/repos/$MY_ORG_NAME/$repo/actions/runs/$run_id"
+            curl -X DELETE -H "Authorization: Bearer $MY_ACCESS_TOKEN" "$delete_url"
+          done
+        done
