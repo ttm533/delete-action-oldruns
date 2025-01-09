@@ -1,12 +1,12 @@
-name: 删除24小时以前的工作流记录
+name: 清理所有仓库的过期工作流记录
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天午夜12点执行一次
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 0 * * *'  # 每天午夜 12 点执行
+  workflow_dispatch:  # 允许手动触发工作流
 
 jobs:
-  delete_old_workflows:
+  cleanup:
     runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
 
     steps:
@@ -20,10 +20,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests  # 安装必要的依赖库
+        pip install requests  # 安装 requests 库
 
-    - name: Run Python script to delete old workflows
+    - name: Run cleanup script
       env:
-        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub Secrets 中获取 MY_ACCESS_TOKEN
-      run: |
-        python main.py  # 运行 Python 脚本
+        MY_ACCESS_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # 从 GitHub secrets 获取 GitHub Token
+        MY_GITHUB_USER: ${{ secrets.MY_GITHUB_USER }}  # 从 GitHub secrets 获取 GitHub 用户名
+      run: python main.py  # 运行 Python 脚本
