@@ -39,6 +39,7 @@ for repo in repos_data:
     
     # 分页处理工作流运行记录
     page = 1
+    total_deleted = 0
     while True:
         response = requests.get(f"{url}?page={page}&per_page=25", headers=headers)
         data = response.json()
@@ -63,9 +64,17 @@ for repo in repos_data:
                 delete_response = requests.delete(delete_url, headers=headers)
                 
                 if delete_response.status_code == 204:
+                    total_deleted += 1
                     print(f"成功删除仓库 {repo_name} 的工作流记录: {run_id}")
                 else:
-                    print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}")
+                    print(f"删除工作流记录失败: {run_id}, 错误: {delete_response.status_code}, 返回信息: {delete_response.text}")
 
         # 如果当前页数处理完了，继续处理下一页
         page += 1
+
+    # 输出每个仓库删除的记录数
+    print(f"仓库 {repo_name} 总共删除了 {total_deleted} 条过期的工作流记录。")
+
+    # 检查是否存在没有删除的记录
+    if total_deleted == 0:
+        print(f"仓库 {repo_name} 没有删除任何记录，可能是时间判断错误或记录没有达到删除条件。")
